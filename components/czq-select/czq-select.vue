@@ -1,18 +1,20 @@
 <template>
-	<view class="czq-select-mode">
-		<view class="czq-input">
+	<view class="only-select-mode">
+		<view class="only-input">
 			<input class="input-model" type="text" readonly="inputValue" @focus="focus" v-model="inputValue" :placeholder="placeholder" />
+			<image v-if="clear" src="../../static/cancel.png" class="cancel" @click="clerCancel()"></image>
 		</view>
-		<view class="czq-select" :class="{'open-tree': visible}">
+		<view class="only-select" :class="{'open-tree': visible}">
 			<view class="select-top" @click="cancel()"></view>
 			<view class="select-bottom">
-				<view class="czq-top">
-					<text class="text" @click="cancel()">{{cancelText}}</text>
-					<text class="text" @click="confirm()">{{okText}}</text>
+				<view class="czq-top" v-if="visible">
+					<text class="text" @click="cancel()">返回</text>
+					<text class="text" @click="confirm()">确定</text>
 				</view>
 				<view class="czq-content">
 					<template v-if="onOff">
 						<view class="czq-data" @click="mUserClick(item.id)" v-for="(item,index) in czqData" :key="index" :class="{'active-data' : (item.active ? true : false)}">
+							<view class="pitc-on"></view>
 							<text class="name">{{item.name}}</text>
 							<view class="pitc-on">
 								<text class="orhon-smart-icons">&#xe654;</text>
@@ -21,15 +23,16 @@
 					</template>
 					<template v-else>
 						<view class="czq-data" @click="userClick(item)" v-for="(item,index) in czqData" :key="index" :class="{'active-data' : (userId === item.id ? true : false)}">
+							<view class="pitc-on"></view>
 							<text class="name">{{item.name}}</text>
 							<view class="pitc-on">
 								<text class="orhon-smart-icons">&#xe654;</text>
 							</view>
 						</view>
 					</template>
-					<template v-if="czqData.length === 0">
-						<u-empty text="数据为空" mode="data"></u-empty>
-					</template>
+				</view>
+				<view v-if="czqData.length === 0 && visible" style="height:100%;">
+					<u-empty text="数据为空" mode="data"></u-empty>
 				</view>
 			</view>
 		</view>
@@ -39,16 +42,6 @@
 <script>
 	export default {
 		name:"czq-select",
-		data() {
-			return {
-				czqData: [],
-				inputValue: '',
-				visible: false,
-				userId: '',
-				userName: '',
-				onOff: false
-			};
-		},
 		props:{
 			cData: {
 				type: Array,
@@ -60,7 +53,7 @@
 				]
 			},
 			multiple: {
-				type: [Boolean,String],
+				type: Boolean,
 				default: false
 			},
 			placeholder: {
@@ -71,20 +64,15 @@
 				type: [String,Number],
 				default: ''
 			},
-			okText: {
-				type: String,
-				default: '确定'
-			},
-			cancelText: {
-				type: String,
-				default: '取消'
+			clearble: {
+				type: Boolean,
+				default: false
 			}
 		},
 		watch:{
 			cData:{
 				immediate: true,
 				handler(value) {
-					console.log('-----:', value)
 					if(value.length > 0) {
 						this.czqData = value.map(item => {
 							return {
@@ -101,24 +89,47 @@
 			multiple: {
 				immediate: true,
 				handler(val) {
-					console.log('----------',val)
 					this.onOff = val;
+				}
+			},
+			clearble: {
+				immediate: true,
+				handler(val) {
+					this.clear = val;
 				}
 			},
 			cValue: {
 				immediate: true,
+				deep:true,
 				handler(val) {
+					// console.log('11选项默认值:', val);
 					if(val) {
 						this.inputValue = val;
 					}
 				}
 			},
-			value: {
-				immediate: true,
-				handler(val) {
-					console.log('监听value:', val);
-				}
-			}
+			// cValue(val) {
+			// 	console.log('11选项默认值:', val);
+			// 	if(val) {
+			// 		this.inputValue = val;
+			// 	} else {
+			// 		console.log('选项默认值:', val);
+			// 	}
+			// }
+		},
+		computed:{
+			
+		},
+		data() {
+			return {
+				czqData: [],
+				inputValue: '',
+				visible: false,
+				userId: '',
+				userName: '',
+				onOff: false,
+				clear: false
+			};
 		},
 		methods: {
 			focus(e) {
@@ -127,7 +138,6 @@
 			},
 			confirm() {
 				if(this.onOff) {
-					console.log('www')
 					var id = [];
 					var name = [];
 					for (var i = 0; i < this.czqData.length; i++) {
@@ -165,18 +175,32 @@
 						this.czqData[i].active = !this.czqData[i].active;
 					}
 				}
+			},
+			// 清空
+			clerCancel() {
+				this.userClick({id: '',name: ''});
+				this.$emit('input', null)
+				this.inputValue = '';
+				this.visible = false;
 			}
+		},
+		created() {
+			
+		},
+		mounted() {
+			
 		}
 	}
 </script>
 
 <style lang="scss" scoped>
-	.czq-select-mode{
-		width: 100%;
+	.only-select-mode{
 		height: 100%;
 		
-		.czq-input{
+		.only-input{
 			// height: inherit;
+			display: flex;
+			align-items: center;
 			
 			.input-model{
 				height: 30px;
@@ -185,13 +209,18 @@
 				border-radius: 4px;
 				font-size: 14px;
 				display: inherit;
+				flex: 1;
+			}
+			.cancel{
+				width: 25px;
+				height: 25px;
 			}
 		}
 	}
 	.uni-searchbar{
 		padding: 8px 0;
 	}
-	.czq-select{
+	.only-select{
 		height: 0px;
 		display: flex;
 		flex-direction: column;
@@ -212,7 +241,7 @@
 		display: none;
 	}
 	.active-data{
-		color: orange;
+		color: #2979ff;
 		background-color: #f0f8ff;
 		.orhon-smart-icons{
 			display: inline;
@@ -229,7 +258,7 @@
 		background-color: white;
 		border-top-left-radius: 12px;
 		border-top-right-radius: 12px;
-		padding: 10px 10px;
+		padding: 10px 0;
 		display: flex;
 		flex-direction: column;
 		flex-wrap: nowrap;
@@ -239,6 +268,7 @@
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
+			min-height: 40px;
 			// margin: 8px;
 			// height: 36px;
 			// padding: 8px 0;
@@ -247,30 +277,35 @@
 				height: 60rpx;
 				text-align: center;
 				line-height: 60rpx;
-				border: 1px solid #d6d6d6;
+				border: 1px solid #d6d6d669;
 				border-radius: 60rpx;
 				margin-bottom: 10rpx;
+				margin-left: 20rpx;
+				margin-right: 20rpx;
 			}
 		}
 		.czq-content{
 			overflow-y: auto;
+			flex: 1;
+			// padding: 0 8px;
 			
 			.czq-data{
 				// padding: 10px 15px 10px 5px;
-				border-bottom: 1px solid #ececec;
+				border-bottom: 1px solid #ffffff;
 				// margin-left: 36px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
 				// width: 65%;
-				padding: 10px 18px;
+				// padding: 10px 18px;
+				height: 80rpx;
 				border-radius: 3px;
 				.name{
 					flex: 1;
 					text-align: center;
 				}
 				.pitc-on{
-					width: 16px;
+					width: 84rpx;
 				}
 				.orhon-smart-icons{
 					font-size: 12px;

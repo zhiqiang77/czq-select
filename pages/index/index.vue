@@ -5,7 +5,7 @@
 			<text class="title">{{title}}</text>
 		</view>
 		
-		<czq-select :cData="cData" v-model="value1" placeholder="请选择" class="ccc"></czq-select>
+		<czq-select :cData="cData" v-model="value1" placeholder="请选择" class="ccc" @onlySelect="onlySelect"></czq-select>
 		
 		<uni-forms :value="formData" ref="form" validate-trigger="bind" err-show-type="undertext" labelPosition="left" class="leave-form">
 			<uni-forms-item required name="studentList" label="学生" class="leave-item">
@@ -58,7 +58,9 @@
 
 		},
 		methods: {
-
+			onlySelect(e) {
+				console.log(e);
+			}
 		}
 	}
 </script>
@@ -96,5 +98,6 @@
 	}
 	.ccc{
 		margin: 40rpx 0;
+		width: 100%;
 	}
 </style>
